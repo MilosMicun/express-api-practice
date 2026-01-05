@@ -22,6 +22,20 @@ function validateUser(req, res, next) {
     next();
 }
 
+function validateOrder(req, res, next) {
+    const { userId, productName, quantity } = req.body;
+
+    if (userId === undefined || !productName || quantity === undefined) {
+        return res.status(400).json({ error: "userId, productName and quantity are required" });
+    }
+
+    if (typeof quantity !== "number" || quantity <= 0) {
+        return res.status(400).json({ error: "Quantity must be a positive number" });
+    }
+
+    next();
+}
+
 app.post("/users", validateUser, (req, res) => {
     const { userName, email } = req.body;
     return res.status(201).json({
@@ -49,6 +63,35 @@ app.get("/users/:id", (req, res) => {
     }
 
     return res.json(user);
+});
+
+app.post("/orders", validateOrder, (req, res) => {
+    const { userId, productName, quantity } = req.body;
+    return res.status(201).json({
+        message: "Order successfully created",
+        order: { userId, productName, quantity }
+    });
+});
+
+app.get("/orders", (req, res) => {
+    const orders = [
+        { id: 1, userId: 1, productName: "Phone", quantity: 1 }
+    ];
+    return res.json(orders);
+});
+
+app.get("/orders/:id", (req, res) => {
+    const orders = [
+        { id: 1 },
+        { id: 2 }
+    ];
+    const order = orders.find(o => o.id === Number(req.params.id));
+
+    if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+    }
+
+    return res.json(order);
 });
 
 app.listen(3000, () => {
